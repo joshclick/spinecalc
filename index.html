@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Arrow Tuning Calculator</title>
+    <style>
+        :root {
+            --bg-color: #f4f4f9;
+            --card-bg: #ffffff;
+            --primary: #2c3e50;
+            --accent: #e74c3c;
+            --text-main: #333333;
+            --text-muted: #7f8c8d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .calculator-card {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 550px;
+            flex-shrink: 0;
+        }
+
+        .saved-panel {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 24px;
+            width: 300px;
+            flex-shrink: 0;
+        }
+
+        .saved-panel h3 {
+            color: var(--primary);
+            margin: 0 0 16px 0;
+            font-size: 1.1em;
+        }
+
+        .saved-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .saved-item {
+            border: 1px solid #ecf0f1;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .saved-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .saved-item-name {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.95em;
+        }
+
+        .saved-item-type {
+            font-size: 0.75em;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+
+        .saved-item-type.baseline { background-color: var(--primary); }
+        .saved-item-type.target { background-color: var(--accent); }
+
+        .saved-item-details {
+            font-size: 0.82em;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .saved-item-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .saved-item-actions button {
+            font-size: 0.8em;
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            background: white;
+            color: var(--text-main);
+            transition: background-color 0.15s;
+        }
+
+        .saved-item-actions button:hover { background-color: #f0f0f0; }
+        .saved-item-actions .btn-delete { color: var(--accent); border-color: var(--accent); }
+        .saved-item-actions .btn-delete:hover { background-color: #fdf0ef; }
+        .saved-item-actions .btn-load { color: var(--primary); border-color: var(--primary); }
+        .saved-item-actions .btn-load:hover { background-color: #eef1f3; }
+
+        .save-btn {
+            display: inline-block;
+            font-size: 0.85em;
+            padding: 6px 14px;
+            border-radius: 6px;
+            border: 1px solid var(--primary);
+            cursor: pointer;
+            background: white;
+            color: var(--primary);
+            font-weight: 500;
+            transition: background-color 0.15s;
+            margin-top: 4px;
+        }
+
+        .save-btn:hover { background-color: #eef1f3; }
+
+        .empty-state {
+            color: var(--text-muted);
+            font-size: 0.9em;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        .methodology-panel {
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 890px;
+        }
+
+        .methodology-panel h3 {
+            color: var(--primary);
+            margin: 0 0 16px 0;
+            font-size: 1.1em;
+            font-weight: 600;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+        }
+
+        .methodology-panel h4 {
+            color: var(--primary);
+            margin: 20px 0 8px 0;
+            font-size: 0.95em;
+        }
+
+        .methodology-panel p {
+            color: var(--text-muted);
+            font-size: 0.88em;
+            line-height: 1.7;
+            margin: 0 0 10px 0;
+        }
+
+        .methodology-panel code {
+            background-color: #f0f0f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: var(--primary);
+        }
+
+        .methodology-panel ul {
+            color: var(--text-muted);
+            font-size: 0.88em;
+            line-height: 1.7;
+            padding-left: 20px;
+            margin: 0 0 10px 0;
+        }
+
+        .spine-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88em;
+            margin-top: 10px;
+        }
+
+        .spine-table th, .spine-table td {
+            padding: 6px 12px;
+            text-align: right;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .spine-table th {
+            color: var(--primary);
+            font-weight: 600;
+            border-bottom: 2px solid #ecf0f1;
+        }
+
+        .spine-table th:first-child, .spine-table td:first-child {
+            text-align: left;
+        }
+
+        .spine-table tr:hover td {
+            background-color: #f8f9fa;
+        }
+
+        .table-input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            margin-bottom: 4px;
+        }
+
+        .table-input-row label {
+            font-size: 0.88em;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        .table-input-row input[type="number"] {
+            width: 70px;
+            font-size: 0.88em;
+        }
+
+        .table-input-row .unit {
+            margin-left: 4px;
+        }
+
+        @media (max-width: 920px) {
+            .top-row { flex-direction: column; align-items: center; }
+            .saved-panel { width: 100%; max-width: 550px; }
+            .methodology-panel { max-width: 550px; }
+        }
+
+        h2 {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            margin-top: 25px;
+        }
+
+        .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .input-group label {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            flex: 1;
+            justify-content: flex-end;
+        }
+
+        input[type="number"], select {
+            width: 90px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1em;
+            text-align: right;
+            outline: none;
+            transition: border-color 0.2s;
+            background-color: white;
+        }
+
+        select {
+            text-align: left;
+            width: 110px;
+        }
+
+        input[type="number"]:focus, select:focus {
+            border-color: var(--accent);
+        }
+
+        .unit {
+            margin-left: 10px;
+            color: var(--text-muted);
+            width: 40px;
+            font-size: 0.9em;
+        }
+
+        .result-box {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 30px;
+        }
+
+        .result-box h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+            font-weight: 500;
+        }
+
+        .result-value {
+            font-size: 2.8em;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .note {
+            font-size: 0.85em;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 15px;
+            line-height: 1.5;
+        }
+        
+        .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .reference ul {
+            margin: 0;
+            padding-left: 20px;
+            color: var(--text-muted);
+            font-size: 0.9em;
+            line-height: 1.8;
+        }
+
+        .checkbox-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-group label {
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-row">
+    <div class="calculator-card">
+        <h2>Advanced Arrow Tuning</h2>
+        
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+            Baseline Setup (Perfect Tune)
+            <button class="save-btn" onclick="saveSetup('baseline')">Save</button>
+        </div>
+        <div class="input-group">
+            <label for="oldSpine">Static Spine</label>
+            <div class="input-wrapper">
+                <input type="number" id="oldSpine" value="1000" step="10" min="300" oninput="calculate()">
+                <span class="unit"></span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="oldLength">Shaft Length</label>
+            <div class="input-wrapper">
+                <input type="number" id="oldLength" value="25.5" step="0.1" min="20" oninput="calculate()">
+                <span class="unit">in</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="oldPoundage">Draw Weight</label>
+            <div class="input-wrapper">
+                <input type="number" id="oldPoundage" value="20" step="0.1" min="15" oninput="calculate()">
+                <span class="unit">lbs</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="oldWeight">Point Weight</label>
+            <div class="input-wrapper">
+                <input type="number" id="oldWeight" value="100" step="10" min="50" oninput="calculate()">
+                <span class="unit">gr</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="oldType">Shaft Profile</label>
+            <div class="input-wrapper">
+                <select id="oldType" onchange="calculate()">
+                    <option value="Parallel">Parallel</option>
+                    <option value="Barreled">Barreled</option>
+                </select>
+                <span class="unit"></span>
+            </div>
+        </div>
+
+        <div class="section-title" style="display:flex;justify-content:space-between;align-items:center;">
+            Target Setup
+            <button class="save-btn" onclick="saveSetup('target')">Save</button>
+        </div>
+        <div class="input-group">
+            <label for="newSpine">New Static Spine</label>
+            <div class="input-wrapper">
+                <input type="number" id="newSpine" value="" step="10" min="300" oninput="reverseCalculate()">
+                <span class="unit"></span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="newLength">New Shaft Length</label>
+            <div class="input-wrapper">
+                <input type="number" id="newLength" value="26.5" step="0.1" min="20" oninput="calculate()">
+                <span class="unit">in</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="newPoundage">New Draw Weight</label>
+            <div class="input-wrapper">
+                <input type="number" id="newPoundage" value="20" step="0.1" min="15" oninput="calculate()">
+                <span class="unit">lbs</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="newWeight">New Point Weight</label>
+            <div class="input-wrapper">
+                <input type="number" id="newWeight" value="100" step="10" min="50" oninput="calculate()">
+                <span class="unit">gr</span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="newType">New Shaft Profile</label>
+            <div class="input-wrapper">
+                <select id="newType" onchange="calculate()">
+                    <option value="Parallel">Parallel</option>
+                    <option value="Barreled">Barreled</option>
+                </select>
+                <span class="unit"></span>
+            </div>
+        </div>
+
+        <div class="result-box">
+            <h3>Required Static Spine</h3>
+            <div class="result-value" id="resultSpine">926</div>
+        </div>
+
+        <div class="note">
+            Calculates static spine based on inverse-square length, inverse-proportional draw weight, and dynamic point weight scaling. <br><br>
+            <span class="highlight">* Barreled vs. Parallel adjustment: <span id="adjustmentNote">14%</span></span><br>
+            <span class="highlight">* X10: 14% weaker &bull; ACE: 8% weaker</span>
+        </div>
+
+        <div class="section-title">Advanced Settings</div>
+        <div class="checkbox-group">
+            <label for="breakoffMode">Breakoff Points</label>
+            <input type="checkbox" id="breakoffMode" checked onchange="calculate()">
+        </div>
+        <div class="input-group">
+            <label for="taperMode">Barrel Adjustment Mode</label>
+            <div class="input-wrapper">
+                <select id="taperMode" onchange="calculate()">
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed Points</option>
+                </select>
+                <span class="unit"></span>
+            </div>
+        </div>
+        <div class="input-group">
+            <label for="taperValue">Adjustment Value</label>
+            <div class="input-wrapper">
+                <input type="number" id="taperValue" value="14" step="1" min="0" oninput="calculate()">
+                <span class="unit" id="taperUnit">%</span>
+            </div>
+        </div>
+
+        <div class="section-title">Reference</div>
+        <div class="reference">
+            <ul>
+                <li>10 gr point weight &asymp; 0.4 lbs draw weight</li>
+                <li>1" arrow length &asymp; 2.25 lbs draw weight</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="saved-panel">
+        <h3>Saved Setups</h3>
+        <ul class="saved-list" id="savedList"></ul>
+        <div class="empty-state" id="emptyState">No saved setups yet.</div>
+    </div>
+    </div><!-- /.top-row -->
+
+    <div class="methodology-panel">
+        <h3>Methodology</h3>
+
+        <h4>1. Shaft Length &amp; Draw Weight</h4>
+        <p>
+            Static spine measures shaft stiffness via deflection over a fixed span. A longer shaft flexes more
+            (weaker), while higher draw weight forces more deflection (also weaker). The relationship between
+            length and stiffness follows an inverse-square law &mdash; doubling length increases deflection by 4x
+            &mdash; while draw weight scales linearly.
+        </p>
+        <p>
+            <code>spine = baseline_spine &times; (old_length / new_length)&sup2; &times; (old_draw_weight / new_draw_weight)</code>
+        </p>
+        <p>
+            A common rule of thumb: 1" of shaft length has roughly the same dynamic effect as 2.25 lbs of draw weight.
+        </p>
+
+        <h4>2. Point Weight (Mass Effect)</h4>
+        <p>
+            Heavier points increase tip inertia, causing the shaft to flex more on release &mdash; the arrow
+            behaves as if it has a weaker spine. Lighter points reduce flex and make it act stiffer. The
+            sensitivity scales with the arrow's current spine: a 1000-spine shaft reacts twice as much to a
+            given weight change as a 500-spine shaft.
+        </p>
+        <p>
+            <code>spine = spine - (weight_diff &times; spine / 500)</code>
+        </p>
+        <p>
+            A common rule of thumb: 10 grains of point weight has roughly the same dynamic effect as 0.4 lbs of draw weight.
+        </p>
+
+        <h4>3. Breakoff Point Insert Length Compensation</h4>
+        <p>
+            With breakoff points (e.g. Easton ACE, X10), reducing point weight means snapping off segments
+            from the internal insert. This makes the insert shorter, exposing more unsupported carbon shaft
+            to flex. The two effects oppose each other:
+        </p>
+        <ul>
+            <li><strong>Mass effect:</strong> less tip weight &rarr; arrow acts stiffer</li>
+            <li><strong>Insert length effect:</strong> shorter insert &rarr; more carbon free to flex &rarr; arrow acts weaker</li>
+        </ul>
+        <p>
+            Based on Easton ACE HL breakoff dimensions (~3mm per 10gr segment), each grain of weight change
+            shifts the effective flex length by approximately 0.012". The calculator adjusts the shaft length
+            used in the inverse-square calculation accordingly, partially counteracting the mass effect.
+        </p>
+        <p>
+            <code>effective_length = shaft_length - (weight_diff &times; 0.012)</code>
+        </p>
+        <p>
+            When breakoff mode is off, only the pure mass effect is applied &mdash; appropriate for
+            non-breakoff points where swapping to a different weight doesn't change insert geometry.
+        </p>
+
+        <h4>4. Barreled vs. Parallel Shaft Profile</h4>
+        <p>
+            Barreled (tapered) shafts like the X10 and ACE have thinner walls at the ends and thicker walls
+            in the center. This geometry makes them act dynamically weaker than a parallel shaft of the same
+            static spine, because the thinner ends flex more under load. To match the dynamic behavior of a
+            parallel shaft, you need a statically stiffer (lower number) barreled shaft.
+        </p>
+        <p>
+            The adjustment is applied as either a percentage or fixed-point offset, configurable in
+            Advanced Settings. Default values based on manufacturer data:
+        </p>
+        <ul>
+            <li><strong>X10:</strong> 14% weaker &mdash; aggressive barrel taper with tungsten tip</li>
+            <li><strong>ACE:</strong> 8% weaker &mdash; moderate barrel taper, all-carbon construction</li>
+        </ul>
+        <p>
+            <code>Parallel &rarr; Barreled: spine = spine &times; (1 - adjustment%)</code><br>
+            <code>Barreled &rarr; Parallel: spine = spine / (1 - adjustment%)</code>
+        </p>
+
+        <h4>5. Reverse Calculation (Target Spine &rarr; Draw Weight)</h4>
+        <p>
+            When you enter a target spine in the New Static Spine field, the calculator inverts the formula
+            to solve for the draw weight that would produce that spine. It undoes each step in reverse order
+            &mdash; taper, point weight, then length/poundage &mdash; to arrive at the required draw weight.
+        </p>
+
+        <h4>6. Spine-to-Poundage Equivalence Table</h4>
+        <p>
+            How many pounds of draw weight does 50 spine points represent at each spine value?
+            The relationship is non-linear &mdash; 50 spine points are "worth" more lbs at lower (stiffer) spines.
+        </p>
+        <p><code>lbs per 50 spine = draw_weight &times; 50 / (spine - 50)</code></p>
+        <div class="table-input-row">
+            <label for="tableDrawWeight">Draw Weight:</label>
+            <input type="number" id="tableDrawWeight" value="30" step="0.5" min="10" oninput="renderSpineTable()">
+            <span class="unit" style="margin-left:0">lbs</span>
+        </div>
+        <table class="spine-table">
+            <thead>
+                <tr>
+                    <th>Starting Spine</th>
+                    <th>Lbs / 50 spine</th>
+                    <th>Lbs / 100 spine</th>
+                </tr>
+            </thead>
+            <tbody id="spineTableBody"></tbody>
+        </table>
+
+        <h4>7. Length-to-Poundage Equivalence Table</h4>
+        <p>
+            How many pounds of draw weight does 1" of shaft length represent?
+            Because spine scales with the inverse square of length, shorter shafts see a larger
+            per-inch poundage equivalent.
+        </p>
+        <p><code>lbs per inch &asymp; draw_weight &times; (2 &times; length + 1) / length&sup2;</code></p>
+        <div class="table-input-row">
+            <label for="lengthTableDrawWeight">Draw Weight:</label>
+            <input type="number" id="lengthTableDrawWeight" value="30" step="0.5" min="10" oninput="renderLengthTable()">
+            <span class="unit" style="margin-left:0">lbs</span>
+        </div>
+        <table class="spine-table">
+            <thead>
+                <tr>
+                    <th>Shaft Length</th>
+                    <th>Lbs / 1"</th>
+                    <th>Lbs / 0.5"</th>
+                </tr>
+            </thead>
+            <tbody id="lengthTableBody"></tbody>
+        </table>
+
+        <h4>8. Point Weight-to-Poundage Equivalence Table</h4>
+        <p>
+            How many pounds of draw weight is 10 grains of point weight equivalent to?
+            With breakoff points, the insert length effect partially counteracts the mass effect,
+            reducing the net poundage equivalent. Without breakoff, only the mass effect applies.
+        </p>
+        <div class="table-input-row">
+            <label for="pointTableDrawWeight">Draw Weight:</label>
+            <input type="number" id="pointTableDrawWeight" value="30" step="0.5" min="10" oninput="renderPointTable()">
+            <span class="unit" style="margin-left:0">lbs</span>
+            <label for="pointTableLength" style="margin-left:12px">Shaft Length:</label>
+            <input type="number" id="pointTableLength" value="26.5" step="0.5" min="20" oninput="renderPointTable()">
+            <span class="unit" style="margin-left:0">in</span>
+        </div>
+        <table class="spine-table">
+            <thead>
+                <tr>
+                    <th>Starting Spine</th>
+                    <th>Lbs / 10gr</th>
+                </tr>
+            </thead>
+            <tbody id="pointTableBody"></tbody>
+        </table>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'spinecalc_values';
+        const FIELD_IDS = ['oldSpine', 'oldLength', 'oldPoundage', 'oldWeight', 'oldType',
+                           'newSpine', 'newLength', 'newPoundage', 'newWeight', 'newType',
+                           'taperMode', 'taperValue', 'tableDrawWeight', 'lengthTableDrawWeight',
+                           'pointTableDrawWeight', 'pointTableLength'];
+        const CHECKBOX_IDS = ['breakoffMode'];
+
+        // ~3mm per 10gr segment, estimated from ACE HL breakoff dimensions
+        const INSERT_LENGTH_PER_GRAIN = 0.012; // inches per grain
+
+        function saveValues() {
+            const values = {};
+            FIELD_IDS.forEach(id => values[id] = document.getElementById(id).value);
+            CHECKBOX_IDS.forEach(id => values[id] = document.getElementById(id).checked);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(values));
+        }
+
+        function restoreValues() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (!saved) return;
+            const values = JSON.parse(saved);
+            FIELD_IDS.forEach(id => {
+                if (values[id] !== undefined) document.getElementById(id).value = values[id];
+            });
+            CHECKBOX_IDS.forEach(id => {
+                if (values[id] !== undefined) document.getElementById(id).checked = values[id];
+            });
+        }
+
+        function getTaperSettings() {
+            const taperMode = document.getElementById('taperMode').value;
+            const taperValue = parseFloat(document.getElementById('taperValue').value) || 0;
+            document.getElementById('taperUnit').innerText = taperMode === 'percentage' ? '%' : 'pts';
+            document.getElementById('adjustmentNote').innerText =
+                taperMode === 'percentage' ? taperValue + '%' : taperValue + ' points';
+            return { taperMode, taperValue };
+        }
+
+        function applyTaper(spine, oldType, newType, taperMode, taperValue) {
+            if (oldType === 'Parallel' && newType === 'Barreled') {
+                return taperMode === 'percentage' ? spine * (1 - taperValue / 100) : spine - taperValue;
+            } else if (oldType === 'Barreled' && newType === 'Parallel') {
+                return taperMode === 'percentage' ? spine / (1 - taperValue / 100) : spine + taperValue;
+            }
+            return spine;
+        }
+
+        function undoTaper(spine, oldType, newType, taperMode, taperValue) {
+            if (oldType === 'Parallel' && newType === 'Barreled') {
+                return taperMode === 'percentage' ? spine / (1 - taperValue / 100) : spine + taperValue;
+            } else if (oldType === 'Barreled' && newType === 'Parallel') {
+                return taperMode === 'percentage' ? spine * (1 - taperValue / 100) : spine - taperValue;
+            }
+            return spine;
+        }
+
+        // Forward: compute spine from draw weight
+        function calculate() {
+            saveValues();
+
+            const oldSpine = parseFloat(document.getElementById('oldSpine').value);
+            const oldLength = parseFloat(document.getElementById('oldLength').value);
+            const oldPoundage = parseFloat(document.getElementById('oldPoundage').value);
+            const oldWeight = parseFloat(document.getElementById('oldWeight').value);
+            const oldType = document.getElementById('oldType').value;
+
+            const newLength = parseFloat(document.getElementById('newLength').value);
+            const newPoundage = parseFloat(document.getElementById('newPoundage').value);
+            const newWeight = parseFloat(document.getElementById('newWeight').value);
+            const newType = document.getElementById('newType').value;
+
+            const { taperMode, taperValue } = getTaperSettings();
+
+            const breakoff = document.getElementById('breakoffMode').checked;
+
+            if (!oldLength || !oldSpine || !oldWeight || !oldPoundage || !newLength || !newWeight || !newPoundage) {
+                document.getElementById('resultSpine').innerText = "---";
+                return;
+            }
+
+            // In breakoff mode, changing point weight also changes how much carbon is free to flex.
+            // Removing weight shortens the insert, exposing more shaft → effectively longer flex length.
+            const weightDiff = newWeight - oldWeight;
+            let effectiveNewLength = newLength;
+            if (breakoff) {
+                effectiveNewLength = newLength - weightDiff * INSERT_LENGTH_PER_GRAIN;
+            }
+
+            // 1. Length & Poundage
+            let calculatedSpine = oldSpine * Math.pow((oldLength / effectiveNewLength), 2) * (oldPoundage / newPoundage);
+
+            // 2. Point Weight (mass effect on dynamic spine)
+            calculatedSpine = calculatedSpine - weightDiff * (calculatedSpine / 500.0);
+
+            // 3. Taper
+            calculatedSpine = applyTaper(calculatedSpine, oldType, newType, taperMode, taperValue);
+
+            if (calculatedSpine > 0) {
+                document.getElementById('resultSpine').innerText = Math.round(calculatedSpine);
+                document.getElementById('newSpine').value = Math.round(calculatedSpine);
+            } else {
+                document.getElementById('resultSpine').innerText = "Error";
+                document.getElementById('newSpine').value = "";
+            }
+        }
+
+        // Reverse: compute draw weight from target spine
+        function reverseCalculate() {
+            saveValues();
+
+            const oldSpine = parseFloat(document.getElementById('oldSpine').value);
+            const oldLength = parseFloat(document.getElementById('oldLength').value);
+            const oldPoundage = parseFloat(document.getElementById('oldPoundage').value);
+            const oldWeight = parseFloat(document.getElementById('oldWeight').value);
+            const oldType = document.getElementById('oldType').value;
+
+            const targetSpine = parseFloat(document.getElementById('newSpine').value);
+            const newLength = parseFloat(document.getElementById('newLength').value);
+            const newWeight = parseFloat(document.getElementById('newWeight').value);
+            const newType = document.getElementById('newType').value;
+
+            const { taperMode, taperValue } = getTaperSettings();
+            const breakoff = document.getElementById('breakoffMode').checked;
+
+            if (!oldLength || !oldSpine || !oldWeight || !oldPoundage || !newLength || !newWeight || !targetSpine) {
+                document.getElementById('resultSpine').innerText = "---";
+                return;
+            }
+
+            // Effective flex length accounts for breakoff insert length change
+            const weightDiff = newWeight - oldWeight;
+            let effectiveNewLength = newLength;
+            if (breakoff) {
+                effectiveNewLength = newLength - weightDiff * INSERT_LENGTH_PER_GRAIN;
+            }
+
+            // Undo taper to get the spine before taper was applied
+            let preTaper = undoTaper(targetSpine, oldType, newType, taperMode, taperValue);
+
+            // Undo point weight: preTaper = s1 * (1 - weightDiff/500)
+            const pointFactor = 1 - weightDiff / 500.0;
+            if (!pointFactor) { document.getElementById('resultSpine').innerText = "Error"; return; }
+            let s1 = preTaper / pointFactor;
+
+            // s1 = oldSpine * (oldLength/effectiveNewLength)^2 * (oldPoundage/newPoundage)
+            // Solve for newPoundage:
+            const lengthFactor = Math.pow(oldLength / effectiveNewLength, 2);
+            if (!s1) { document.getElementById('resultSpine').innerText = "Error"; return; }
+            const newPoundage = oldSpine * lengthFactor * oldPoundage / s1;
+
+            if (newPoundage > 0) {
+                document.getElementById('newPoundage').value = Math.round(newPoundage * 10) / 10;
+                document.getElementById('resultSpine').innerText = Math.round(targetSpine);
+            } else {
+                document.getElementById('resultSpine').innerText = "Error";
+            }
+        }
+
+        // --- Saved Setups ---
+        const SETUPS_KEY = 'spinecalc_setups';
+
+        function getSetups() {
+            return JSON.parse(localStorage.getItem(SETUPS_KEY) || '[]');
+        }
+
+        function persistSetups(setups) {
+            localStorage.setItem(SETUPS_KEY, JSON.stringify(setups));
+        }
+
+        function saveSetup(type) {
+            const name = prompt('Name this setup:');
+            if (!name) return;
+
+            const setup = { name, type, id: Date.now() };
+            if (type === 'baseline') {
+                setup.spine = document.getElementById('oldSpine').value;
+                setup.length = document.getElementById('oldLength').value;
+                setup.poundage = document.getElementById('oldPoundage').value;
+                setup.weight = document.getElementById('oldWeight').value;
+                setup.profile = document.getElementById('oldType').value;
+            } else {
+                setup.spine = document.getElementById('newSpine').value;
+                setup.length = document.getElementById('newLength').value;
+                setup.poundage = document.getElementById('newPoundage').value;
+                setup.weight = document.getElementById('newWeight').value;
+                setup.profile = document.getElementById('newType').value;
+            }
+
+            const setups = getSetups();
+            setups.push(setup);
+            persistSetups(setups);
+            renderSetups();
+        }
+
+        function deleteSetup(id) {
+            const setups = getSetups().filter(s => s.id !== id);
+            persistSetups(setups);
+            renderSetups();
+        }
+
+        function loadSetup(id, dest) {
+            const setup = getSetups().find(s => s.id === id);
+            if (!setup) return;
+
+            const prefix = dest === 'baseline' ? 'old' : 'new';
+            document.getElementById(prefix === 'old' ? 'oldSpine' : 'newSpine').value = setup.spine;
+            document.getElementById(prefix + 'Length').value = setup.length;
+            document.getElementById(prefix + 'Poundage').value = setup.poundage;
+            document.getElementById(prefix + 'Weight').value = setup.weight;
+            document.getElementById(prefix + 'Type').value = setup.profile;
+            calculate();
+        }
+
+        function renderSetups() {
+            const setups = getSetups();
+            const list = document.getElementById('savedList');
+            const empty = document.getElementById('emptyState');
+
+            list.innerHTML = '';
+            empty.style.display = setups.length ? 'none' : 'block';
+
+            setups.forEach(s => {
+                const li = document.createElement('li');
+                li.className = 'saved-item';
+                li.innerHTML = `
+                    <div class="saved-item-header">
+                        <span class="saved-item-name">${s.name}</span>
+                        <span class="saved-item-type ${s.type}">${s.type}</span>
+                    </div>
+                    <div class="saved-item-details">
+                        Spine ${s.spine} &middot; ${s.length}" &middot; ${s.poundage} lbs &middot; ${s.weight} gr &middot; ${s.profile}
+                    </div>
+                    <div class="saved-item-actions">
+                        <button class="btn-load" onclick="loadSetup(${s.id}, 'baseline')">Load Baseline</button>
+                        <button class="btn-load" onclick="loadSetup(${s.id}, 'target')">Load Target</button>
+                        <button class="btn-delete" onclick="deleteSetup(${s.id})">Delete</button>
+                    </div>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function renderSpineTable() {
+            const dw = parseFloat(document.getElementById('tableDrawWeight').value) || 0;
+            const tbody = document.getElementById('spineTableBody');
+            tbody.innerHTML = '';
+            for (let spine = 1200; spine >= 500; spine -= 50) {
+                const lbs50 = dw * 50 / (spine - 50);
+                const lbs100 = spine > 100 ? dw * 100 / (spine - 100) : null;
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${spine}</td><td>${lbs50.toFixed(1)}</td><td>${lbs100 !== null ? lbs100.toFixed(1) : '&mdash;'}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderLengthTable() {
+            const dw = parseFloat(document.getElementById('lengthTableDrawWeight').value) || 0;
+            const tbody = document.getElementById('lengthTableBody');
+            tbody.innerHTML = '';
+            for (let len = 29; len >= 24; len -= 0.5) {
+                const lbs1 = dw * (2 * len + 1) / (len * len);
+                const lbs05 = dw * (2 * len + 0.5) / (len * len) - dw / (len * len) * (len - 0.25);
+                // Simpler exact form for 0.5": poundage * ((len+0.5)/len)^2 - 1)
+                const lbsHalf = dw * (Math.pow((len + 0.5) / len, 2) - 1);
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${len.toFixed(1)}"</td><td>${lbs1.toFixed(2)}</td><td>${lbsHalf.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        function renderPointTable() {
+            const dw = parseFloat(document.getElementById('pointTableDrawWeight').value) || 0;
+            const len = parseFloat(document.getElementById('pointTableLength').value) || 26.5;
+            const tbody = document.getElementById('pointTableBody');
+            tbody.innerHTML = '';
+            for (let spine = 1200; spine >= 500; spine -= 50) {
+                const effLen = len - 10 * INSERT_LENGTH_PER_GRAIN;
+                const s1 = spine * Math.pow(len / effLen, 2);
+                const s2 = s1 * (1 - 10 / 500);
+                const delta = dw * (spine - s2) / s2;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td>${spine}</td><td>${delta.toFixed(2)}</td>`;
+                tbody.appendChild(tr);
+            }
+        }
+
+        // Restore saved values then calculate on load
+        window.onload = function() {
+            restoreValues();
+            calculate();
+            renderSetups();
+            renderSpineTable();
+            renderLengthTable();
+            renderPointTable();
+        };
+    </script>
+</body>
+</html>
