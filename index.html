@@ -527,15 +527,15 @@
         <h4>1. Shaft Length &amp; Draw Weight</h4>
         <p>
             Static spine measures shaft stiffness via deflection over a fixed span. A longer shaft flexes more
-            (weaker), while higher draw weight forces more deflection (also weaker). The relationship between
-            length and stiffness follows an inverse-square law &mdash; doubling length increases deflection by 4x
-            &mdash; while draw weight scales linearly.
+            (weaker), while higher draw weight forces more deflection (also weaker). Beam deflection follows an
+            inverse-cube law (Euler-Bernoulli) &mdash; doubling length increases deflection by 8x &mdash; while
+            draw weight scales linearly.
         </p>
         <p>
-            <code>spine = baseline_spine &times; (old_length / new_length)&sup2; &times; (old_draw_weight / new_draw_weight)</code>
+            <code>spine = baseline_spine &times; (old_length / new_length)&sup3; &times; (old_draw_weight / new_draw_weight)</code>
         </p>
         <p>
-            A common rule of thumb: 1" of shaft length has roughly the same dynamic effect as 2.25 lbs of draw weight.
+            A common rule of thumb: 1" of shaft length has roughly the same dynamic effect as ~5 lbs of draw weight.
         </p>
 
         <h4>2. Point Weight (Mass Effect)</h4>
@@ -565,7 +565,7 @@
         <p>
             Based on Easton ACE HL breakoff dimensions (~3mm per 10gr segment), each grain of weight change
             shifts the effective flex length by approximately 0.012". The calculator adjusts the shaft length
-            used in the inverse-square calculation accordingly, partially counteracting the mass effect.
+            used in the inverse-cube calculation accordingly, partially counteracting the mass effect.
         </p>
         <p>
             <code>effective_length = shaft_length - (weight_diff &times; 0.012)</code>
@@ -627,10 +627,10 @@
         <h4>7. Length-to-Poundage Equivalence Table</h4>
         <p>
             How many pounds of draw weight does 1" of shaft length represent?
-            Because spine scales with the inverse square of length, shorter shafts see a larger
+            Because spine scales with the inverse cube of length, shorter shafts see a larger
             per-inch poundage equivalent.
         </p>
-        <p><code>lbs per inch &asymp; draw_weight &times; (2 &times; length + 1) / length&sup2;</code></p>
+        <p><code>lbs per inch &asymp; draw_weight &times; (3&times;length&sup2; + 3&times;length + 1) / length&sup3;</code></p>
         <div class="table-input-row">
             <label for="lengthTableDrawWeight">Draw Weight:</label>
             <input type="number" id="lengthTableDrawWeight" value="30" step="0.5" min="10" oninput="renderLengthTable()">
@@ -761,8 +761,8 @@
                 effectiveNewLength = newLength - weightDiff * INSERT_LENGTH_PER_GRAIN;
             }
 
-            // 1. Length & Poundage
-            let calculatedSpine = oldSpine * Math.pow((oldLength / effectiveNewLength), 2) * (oldPoundage / newPoundage);
+            // 1. Length & Poundage (beam deflection ∝ L³)
+            let calculatedSpine = oldSpine * Math.pow((oldLength / effectiveNewLength), 3) * (oldPoundage / newPoundage);
 
             // 2. Point Weight (mass effect on dynamic spine)
             calculatedSpine = calculatedSpine - weightDiff * (calculatedSpine / 500.0);
@@ -817,9 +817,9 @@
             if (!pointFactor) { document.getElementById('resultSpine').innerText = "Error"; return; }
             let s1 = preTaper / pointFactor;
 
-            // s1 = oldSpine * (oldLength/effectiveNewLength)^2 * (oldPoundage/newPoundage)
+            // s1 = oldSpine * (oldLength/effectiveNewLength)^3 * (oldPoundage/newPoundage)
             // Solve for newPoundage:
-            const lengthFactor = Math.pow(oldLength / effectiveNewLength, 2);
+            const lengthFactor = Math.pow(oldLength / effectiveNewLength, 3);
             if (!s1) { document.getElementById('resultSpine').innerText = "Error"; return; }
             const newPoundage = oldSpine * lengthFactor * oldPoundage / s1;
 
@@ -933,10 +933,8 @@
             const tbody = document.getElementById('lengthTableBody');
             tbody.innerHTML = '';
             for (let len = 29; len >= 24; len -= 0.5) {
-                const lbs1 = dw * (2 * len + 1) / (len * len);
-                const lbs05 = dw * (2 * len + 0.5) / (len * len) - dw / (len * len) * (len - 0.25);
-                // Simpler exact form for 0.5": poundage * ((len+0.5)/len)^2 - 1)
-                const lbsHalf = dw * (Math.pow((len + 0.5) / len, 2) - 1);
+                const lbs1 = dw * (3 * len * len + 3 * len + 1) / Math.pow(len, 3);
+                const lbsHalf = dw * (Math.pow((len + 0.5) / len, 3) - 1);
                 const tr = document.createElement('tr');
                 tr.innerHTML = `<td>${len.toFixed(1)}"</td><td>${lbs1.toFixed(2)}</td><td>${lbsHalf.toFixed(2)}</td>`;
                 tbody.appendChild(tr);
@@ -950,7 +948,7 @@
             tbody.innerHTML = '';
             for (let spine = 1200; spine >= 500; spine -= 50) {
                 const effLen = len - 10 * INSERT_LENGTH_PER_GRAIN;
-                const s1 = spine * Math.pow(len / effLen, 2);
+                const s1 = spine * Math.pow(len / effLen, 3);
                 const s2 = s1 * (1 - 10 / 500);
                 const delta = dw * (spine - s2) / s2;
 
